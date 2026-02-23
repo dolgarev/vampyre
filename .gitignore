@@ -1,0 +1,6 @@
+**/dest/
+**/obj/
+*.ali
+*.o
+.crush/
+AGENTS.md
