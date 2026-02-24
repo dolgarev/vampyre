@@ -337,7 +337,7 @@ package body Renderer is
          end;
 
          Set_Character_Attributes (Win, Color => Color_Pair (5));
-         Center_Text (Win, Row + 6, "UP/DOWN - select   SPACE - confirm   Q - quit");
+         Center_Text (Win, Row + 6, "UP/DOWN - select   ENTER/SPACE - confirm   Q - quit");
 
          Refresh (Win);
 
@@ -353,6 +353,9 @@ package body Renderer is
                   Current_Selection := Current_Selection + 1;
                end if;
             when Character'Pos (' ') =>  --  Space to confirm
+               Selected_Level := Current_Selection;
+               exit;
+            when Character'Pos (ASCII.LF) | Character'Pos (ASCII.CR) =>  --  Enter key
                Selected_Level := Current_Selection;
                exit;
             when Character'Pos ('q') | Character'Pos ('Q') =>

@@ -40,7 +40,7 @@ Your goal is to **trap all vampires** by surrounding them with blocks — a vamp
 | `Q` | Quit |
 | **Level selection screen** |
 | ↑ ↓ | Change selected level |
-| Space | Confirm level selection |
+| Enter/Space | Confirm level selection |
 | `Q` | Quit game |
 
 ## Requirements
