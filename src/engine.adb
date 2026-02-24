@@ -95,7 +95,7 @@ package body Engine is
       State := (Map             => (others => (others => Space)),
                 Player_Row      => (Max_Rows + 1) / 2,
                 Player_Col      => (Max_Cols + 1) / 2,
-                Vampires        => (others => (0, 0, False, False, False)),
+                Vampires        => (others => (0, 0, False, False)),
                 Num_Vampires    => Num_Vamps,
                 Alive_Vampires  => Num_Vamps,
                 Steps           => 0,
@@ -148,7 +148,7 @@ package body Engine is
                if VC < 2 then VC := 2; end if;
                if VC > Max_Cols - 1 then VC := Max_Cols - 1; end if;
 
-               State.Vampires (I) := (Row => VR, Col => VC, Alive => True, Trapped => False, Blink_On => False);
+               State.Vampires (I) := (Row => VR, Col => VC, Alive => True, Trapped => False);
                State.Map (VR, VC) := Vampire;
             end;
          end loop;
@@ -380,14 +380,7 @@ package body Engine is
          end if;
       end if;
 
-      --  Update blinking for trapped vampires
-      for I in 1 .. State.Num_Vampires loop
-         if State.Vampires (I).Alive and then State.Vampires (I).Trapped then
-            if (State.Steps mod 2) = 0 then
-               State.Vampires (I).Blink_On := not State.Vampires (I).Blink_On;
-            end if;
-         end if;
-      end loop;
+
    end Tick;
 
 end Engine;

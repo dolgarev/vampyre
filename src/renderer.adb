@@ -94,26 +94,8 @@ package body Renderer is
                   Add (Win, Settings.Char_Player);
 
                when Vampire =>
-                  declare
-                     Is_Blink : Boolean := False;
-                  begin
-                     for I in 1 .. State.Num_Vampires loop
-                        if State.Vampires (I).Alive and then
-                           State.Vampires (I).Row = R and then
-                           State.Vampires (I).Col = Col
-                        then
-                           Is_Blink := State.Vampires (I).Blink_On;
-                           exit;
-                        end if;
-                     end loop;
-
-                     if not Is_Blink then
-                        Set_Character_Attributes (Win, Color => Color_Pair (4));
-                        Add (Win, Settings.Char_Vampire);
-                     else
-                        Add (Win, ' ');
-                     end if;
-                  end;
+                  Set_Character_Attributes (Win, Color => Color_Pair (4));
+                  Add (Win, Settings.Char_Vampire);
 
                when Space =>
                   Add (Win, ' ');

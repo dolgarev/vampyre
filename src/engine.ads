@@ -17,7 +17,6 @@ package Engine is
       Col      : Integer := 0;
       Alive    : Boolean := False;
       Trapped  : Boolean := False;  --  Currently surrounded by blocks/walls
-      Blink_On : Boolean := False;  --  Blinking state for trapped vampires
    end record;
 
    type Vampire_Array is
