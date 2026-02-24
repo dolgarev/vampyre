@@ -108,7 +108,8 @@ package body Engine is
                 Player_Dead     => False,
                 Death_Timer     => 0,
                 Game_Over       => False,
-                Level_Complete  => False);
+                Level_Complete  => False,
+                Is_Night        => False);
 
       --  Draw border walls
       for R2 in 1 .. Max_Rows loop
@@ -199,10 +200,20 @@ package body Engine is
                State.Map (NR, NC) := Player;
                State.Steps := State.Steps + 1;
                State.Vampire_Ticker := State.Vampire_Ticker + 1;
-               if State.Vampire_Ticker >= Settings.Vampire_Speed then
-                  State.Vampire_Ticker := 0;
-                  Update_Vampires (State);
-               end if;
+
+               --  Day/Night cycle switching
+               State.Is_Night := (State.Steps / Settings.Cycle_Length) mod 2 = 1;
+
+               declare
+                  Cur_Speed : constant Integer :=
+                    (if State.Is_Night then Settings.Vampire_Speed_Night
+                     else Settings.Vampire_Speed_Day);
+               begin
+                  if State.Vampire_Ticker >= Cur_Speed then
+                     State.Vampire_Ticker := 0;
+                     Update_Vampires (State);
+                  end if;
+               end;
             end if;
 
          when Space =>
@@ -212,10 +223,20 @@ package body Engine is
             State.Map (NR, NC) := Player;
             State.Steps := State.Steps + 1;
             State.Vampire_Ticker := State.Vampire_Ticker + 1;
-            if State.Vampire_Ticker >= Settings.Vampire_Speed then
-               State.Vampire_Ticker := 0;
-               Update_Vampires (State);
-            end if;
+
+            --  Day/Night cycle switching
+            State.Is_Night := (State.Steps / Settings.Cycle_Length) mod 2 = 1;
+
+            declare
+               Cur_Speed : constant Integer :=
+                 (if State.Is_Night then Settings.Vampire_Speed_Night
+                  else Settings.Vampire_Speed_Day);
+            begin
+               if State.Vampire_Ticker >= Cur_Speed then
+                  State.Vampire_Ticker := 0;
+                  Update_Vampires (State);
+               end if;
+            end;
 
          when Vampire =>
             --  Player walks into a vampire — die

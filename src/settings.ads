@@ -29,6 +29,11 @@ package Settings is
    --  Vampires move once every Vampire_Speed hero steps.
    Vampire_Speed : constant := 5;
 
+   --  === Day/Night Cycle ===
+   Cycle_Length : constant := 12;  --  Steps per phase
+   Vampire_Speed_Day   : constant := 4;  --  Moves every 4 steps
+   Vampire_Speed_Night : constant := 2;  --  Moves every 2 steps
+
    --  === Levels ===
    Max_Levels : constant := 10;
 

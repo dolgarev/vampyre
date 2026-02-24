@@ -39,6 +39,7 @@ package Engine is
       Death_Timer      : Integer;
       Game_Over        : Boolean;
       Level_Complete   : Boolean;
+      Is_Night         : Boolean;        --  Day/Night cycle tracking
    end record;
 
    --  Initialise state for a given level (1..Max_Levels)

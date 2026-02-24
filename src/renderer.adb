@@ -147,6 +147,7 @@ package body Renderer is
             then "  TIME:" & Pad (Seconds_Left, 4) & "s"
             else "");
          Bar : constant String :=
+           " [" & (if State.Is_Night then "NIGHT" else "DAY") & "]" &
            " LEVEL:" & Pad (State.Level, 2) &
            "  STEPS:" & Pad (State.Steps, 5) &
            Time_Part &
