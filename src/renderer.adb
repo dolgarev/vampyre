@@ -12,9 +12,10 @@ package body Renderer is
       Init_Pair (Color_Pair (1), Red,     Black);  --  Walls
       Init_Pair (Color_Pair (2), Green,   Black);  --  Blocks
       Init_Pair (Color_Pair (3), Cyan,    Black);  --  Player (@)
-      Init_Pair (Color_Pair (4), Magenta, Black);  --  Vampire
+      Init_Pair (Color_Pair (4), Magenta, Black);  --  Vampire (day)
       Init_Pair (Color_Pair (5), Yellow,  Black);  --  Status bar
       Init_Pair (Color_Pair (6), Red,     Black);  --  Dead player / alert
+      Init_Pair (Color_Pair (7), Red,     Black);  --  Vampire (night) - red for danger
    end Initialize_Colors;
 
    -------------------------------------------------------------------------
@@ -107,7 +108,11 @@ package body Renderer is
                   Add (Win, Settings.Char_Player);
 
                when Vampire =>
-                  Set_Character_Attributes (Win, Color => Color_Pair (4));
+                  if State.Is_Night then
+                     Set_Character_Attributes (Win, Color => Color_Pair (7));
+                  else
+                     Set_Character_Attributes (Win, Color => Color_Pair (4));
+                  end if;
                   Add (Win, Settings.Char_Vampire);
 
                when Space =>
@@ -140,7 +145,7 @@ package body Renderer is
             then "  TIME: " & Pad_Zero (Seconds_Left, 4) & "s"
             else "");
          Bar : constant String :=
-           " [" & (if State.Is_Night then "NIGHT" else "DAY") & "]" &
+           " [" & (if State.Is_Night then "N" else "D") & "]" &
            " LEVEL: " & Pad_Zero (State.Level, 2) &
            "  STEPS: " & Pad_Zero (State.Steps, 5) &
            Time_Part &
