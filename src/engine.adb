@@ -10,9 +10,9 @@ package body Engine is
    --  Directions array for 8-directional vampire movement
    type Dir_Offset is record DR, DC : Integer; end record;
    Dirs_8 : constant array (1 .. 8) of Dir_Offset :=
-     ((-1, -1), (-1, 0), (-1, 1),
+     [(-1, -1), (-1, 0), (-1, 1),
       ( 0, -1),          ( 0, 1),
-      ( 1, -1), ( 1, 0), ( 1, 1));
+      ( 1, -1), ( 1, 0), ( 1, 1)];
 
    ---------------------------------------------------------------------------
    --  Is_Trapped
@@ -92,10 +92,10 @@ package body Engine is
       Rand_Int.Reset (Gen);
 
       --  Default-initialise
-      State := (Map             => (others => (others => Space)),
+      State := (Map             => [others => [others => Space]],
                 Player_Row      => (Max_Rows + 1) / 2,
                 Player_Col      => (Max_Cols + 1) / 2,
-                Vampires        => (others => (0, 0, False, False)),
+                Vampires        => [others => (0, 0, False, False)],
                 Num_Vampires    => Num_Vamps,
                 Alive_Vampires  => Num_Vamps,
                 Steps           => 0,
@@ -127,8 +127,8 @@ package body Engine is
       --  Place vampires near corners
       declare
          Corner_Positions : constant array (1 .. 4) of Dir_Offset :=
-           ((2, 2), (2, Max_Cols - 1), (Max_Rows - 1, 2),
-            (Max_Rows - 1, Max_Cols - 1));
+           [(2, 2), (2, Max_Cols - 1), (Max_Rows - 1, 2),
+            (Max_Rows - 1, Max_Cols - 1)];
       begin
          for I in 1 .. Num_Vamps loop
             declare

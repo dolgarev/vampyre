@@ -50,18 +50,7 @@ package body Renderer is
       Seconds_Left  : constant Integer :=
         State.Ticks_Remaining / Ticks_Per_Sec;
 
-      --  Right-justify Val in a field of Width characters
-      function Pad (Val : Integer; Width : Positive := 3) return String is
-         use Ada.Strings.Fixed;
-         use Ada.Strings;
-         S : constant String := Trim (Val'Image, Both);
-      begin
-         if S'Length < Width then
-            return [1 .. Width - S'Length => ' '] & S;
-         else
-            return S;
-         end if;
-      end Pad;
+
 
       --  Right-justify Val in a field of Width characters with zero padding
       function Pad_Zero (Val : Integer; Width : Positive := 2) return String is

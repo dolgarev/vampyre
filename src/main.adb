@@ -1,5 +1,5 @@
 with Engine;   use Engine;
-with Renderer; use Renderer;
+with Renderer;
 with Settings;
 with Terminal_Interface.Curses; use Terminal_Interface.Curses;
 
