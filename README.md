@@ -13,17 +13,23 @@ Your goal is to **trap all vampires** by surrounding them with blocks — a vamp
 | `W`    | Block (pushable) |
 | `@`    | Player (you) |
 | `V`    | Vampire |
+| `X`    | Dead player (blinking during death animation) |
 
 ### Rules
 
 - The **player** moves in 4 directions (arrow keys).
 - Blocks can be **pushed in chains**: if a row of blocks has a free cell at the end, the whole row slides.
-- A block pushed onto a vampire **crushes** it instantly.
-- **Vampires** chase the player and move in 8 directions, but they are slower — they take a step only once every **2 player moves**.
+- Blocks **cannot be pushed through vampires** - if a vampire is in the path, the block chain cannot move.
+- Vampires are **trapped and killed** when completely surrounded in all 8 directions by blocks or walls.
+- **Vampires** chase the player and move in 8 directions, but their speed varies with the **day/night cycle**:
+  - **Day**: vampires move once every **4 player steps**
+  - **Night**: vampires move once every **2 player steps**
+- The day/night cycle changes every **12 player steps**.
 - A vampire that reaches the player causes a **loss of life**.
 - Each level has an optional **time limit** (disabled by default, like the original).
 - You start with **3 lives**. Losing all lives ends the game.
 - There are **10 levels**. Each level adds one more vampire and removes a few blocks.
+- At the start of the game, you can **select any level from 01 to 10** using arrow keys and Space.
 
 ## Controls
 
@@ -32,6 +38,10 @@ Your goal is to **trap all vampires** by surrounding them with blocks — a vamp
 | ↑ ↓ ← → | Move player |
 | `R` | Restart current level (lives are kept) |
 | `Q` | Quit |
+| **Level selection screen** |
+| ↑ ↓ | Change selected level |
+| Space | Confirm level selection |
+| `Q` | Quit game |
 
 ## Requirements
 
@@ -73,7 +83,9 @@ All tunable parameters live in [`src/settings.ads`](src/settings.ads):
 | `Game_Tick_Ms` | 100 | Main loop tick in ms |
 | `Level_Time_Sec` | 120 | Time limit per level (when enabled) |
 | `Start_Lives` | 3 | Starting lives |
-| `Vampire_Speed` | 2 | Hero steps per vampire move |
+| `Cycle_Length` | 12 | Player steps per day/night phase |
+| `Vampire_Speed_Day` | 4 | Vampire moves every 4 steps during day |
+| `Vampire_Speed_Night` | 2 | Vampire moves every 2 steps during night |
 | `Max_Levels` | 10 | Number of levels |
 | `Vampires_Start` | 2 | Vampires on level 1 |
 | `Blocks_Start` | 60 | Blocks on level 1 |
