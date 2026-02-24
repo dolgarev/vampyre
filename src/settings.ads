@@ -27,7 +27,7 @@ package Settings is
 
    --  === Day/Night Cycle ===
    Cycle_Length : constant := 12;  --  Steps per phase
-   Vampire_Speed_Day   : constant := 4;  --  Moves every 4 steps
+   Vampire_Speed_Day   : constant := 6;  --  Moves every 4 steps
    Vampire_Speed_Night : constant := 2;  --  Moves every 2 steps
 
    --  === Levels ===
