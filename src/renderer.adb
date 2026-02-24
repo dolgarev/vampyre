@@ -132,8 +132,7 @@ package body Renderer is
            "  STEPS:" & Pad (State.Steps, 5) &
            Time_Part &
            "  LIVES:" & Pad (State.Lives, 2) &
-           "  VAMPIRES:" & Pad (State.Alive_Vampires, 2) &
-           "/" & Pad (State.Num_Vampires, 2) & " ";
+           "  TRAPPED:" & Pad (State.Num_Vampires - State.Alive_Vampires, 2) & " ";
          Bar_Len : constant Integer := Integer'Min (Bar'Length, Max_Cols);
          Pad_Len : constant Integer := (Max_Cols - Bar_Len) / 2;
          S       : String (1 .. Max_Cols) := [others => ' '];
