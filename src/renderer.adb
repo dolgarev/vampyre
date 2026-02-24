@@ -102,9 +102,7 @@ package body Renderer is
                            State.Vampires (I).Row = R and then
                            State.Vampires (I).Col = Col
                         then
-                           if State.Vampires (I).Trapped then
-                              Is_Blink := (State.Ticks_Remaining / 2 mod 2 = 0);
-                           end if;
+                           Is_Blink := State.Vampires (I).Blink_On;
                            exit;
                         end if;
                      end loop;
