@@ -62,6 +62,19 @@ package body Renderer is
          end if;
       end Pad;
 
+      --  Right-justify Val in a field of Width characters with zero padding
+      function Pad_Zero (Val : Integer; Width : Positive := 2) return String is
+         use Ada.Strings.Fixed;
+         use Ada.Strings;
+         S : constant String := Trim (Val'Image, Both);
+      begin
+         if S'Length < Width then
+            return [1 .. Width - S'Length => '0'] & S;
+         else
+            return S;
+         end if;
+      end Pad_Zero;
+
    begin
       Get_Size (Win, L, C);
 
@@ -124,15 +137,15 @@ package body Renderer is
       declare
          Time_Part : constant String :=
            (if Settings.Timer_Enabled
-            then "  TIME:" & Pad (Seconds_Left, 4) & "s"
+            then "  TIME: " & Pad_Zero (Seconds_Left, 4) & "s"
             else "");
          Bar : constant String :=
            " [" & (if State.Is_Night then "NIGHT" else "DAY") & "]" &
-           " LEVEL:" & Pad (State.Level, 2) &
-           "  STEPS:" & Pad (State.Steps, 5) &
+           " LEVEL: " & Pad_Zero (State.Level, 2) &
+           "  STEPS: " & Pad_Zero (State.Steps, 5) &
            Time_Part &
-           "  LIVES:" & Pad (State.Lives, 2) &
-           "  TRAPPED:" & Pad (State.Num_Vampires - State.Alive_Vampires, 2) & " ";
+           "  LIVES: " & Pad_Zero (State.Lives, 2) &
+           "  TRAPPED: " & Pad_Zero (State.Num_Vampires - State.Alive_Vampires, 2) & " ";
          Bar_Len : constant Integer := Integer'Min (Bar'Length, Max_Cols);
          Pad_Len : constant Integer := (Max_Cols - Bar_Len) / 2;
          S       : String (1 .. Max_Cols) := [others => ' '];
