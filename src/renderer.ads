@@ -20,4 +20,7 @@ package Renderer is
    --  Shown when all 8 levels are beaten
    procedure Show_Victory (State : Game_State);
 
+   --  Show level selection menu
+   procedure Show_Level_Selection (Selected_Level : out Integer);
+
 end Renderer;

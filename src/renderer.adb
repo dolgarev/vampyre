@@ -298,4 +298,73 @@ package body Renderer is
       Refresh (Win);
    end Show_Victory;
 
+   -------------------------------------------------------------------------
+   procedure Show_Level_Selection (Selected_Level : out Integer) is
+      Win : constant Window := Standard_Window;
+      L   : Line_Count;
+      C   : Column_Count;
+      Row : Line_Position;
+      Key : Key_Code;
+      Current_Selection : Integer := 1;
+   begin
+      Get_Size (Win, L, C);
+      Row := Line_Position (Integer (L) / 2 - 4);
+      if Row < 0 then Row := 0; end if;
+
+      --  Main selection loop
+      loop
+         Erase (Win);
+
+         Set_Character_Attributes (Win, Color => Color_Pair (4));
+         Center_Text (Win, Row, "  S E L E C T   L E V E L  ");
+
+         Set_Character_Attributes (Win, Color => Color_Pair (3));
+         Center_Text (Win, Row + 2, "Choose a level from 1 to" &
+                                    Integer'Image (Settings.Max_Levels));
+
+         --  Display current selection with highlight
+         Set_Character_Attributes (Win, Color => Color_Pair (6));  --  Highlighted
+         declare
+            Level_Image : constant String := Integer'Image (Current_Selection);
+            Level_Str   : String (1 .. 2);
+         begin
+            if Current_Selection < 10 then
+               Level_Str := "0" & Level_Image (Level_Image'Last);
+            else
+               Level_Str := Level_Image (Level_Image'Last - 1 .. Level_Image'Last);
+            end if;
+            Center_Text (Win, Row + 4, "> Level " & Level_Str & " <");
+         end;
+
+         Set_Character_Attributes (Win, Color => Color_Pair (5));
+         Center_Text (Win, Row + 6, "UP/DOWN - select   SPACE - confirm   Q - quit");
+
+         Refresh (Win);
+
+         --  Get user input
+         Key := Get_Keystroke (Win);
+         case Key is
+            when Key_Cursor_Up =>
+               if Current_Selection > 1 then
+                  Current_Selection := Current_Selection - 1;
+               end if;
+            when Key_Cursor_Down =>
+               if Current_Selection < Settings.Max_Levels then
+                  Current_Selection := Current_Selection + 1;
+               end if;
+            when Character'Pos (' ') =>  --  Space to confirm
+               Selected_Level := Current_Selection;
+               exit;
+            when Character'Pos ('q') | Character'Pos ('Q') =>
+               Selected_Level := 0;  --  Signal to quit
+               exit;
+            when others =>
+               null;
+         end case;
+      end loop;
+
+      Erase (Win);
+      Refresh (Win);
+   end Show_Level_Selection;
+
 end Renderer;

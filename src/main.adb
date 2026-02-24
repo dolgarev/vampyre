@@ -27,17 +27,21 @@ begin
    Set_Timeout_Mode (Win, Blocking, 0);
    Key := Get_Keystroke (Win);
 
+   --  Level selection menu
+   Renderer.Show_Level_Selection (Current_Level);
+   if Current_Level = 0 then
+      return;  --  User chose to quit
+   end if;
+
    --  ============================================================
    --  Outer loop: iterate through all levels
    --  ============================================================
-   Current_Level := 1;
    Outer_Loop :
    loop
       exit Outer_Loop when Current_Level > Settings.Max_Levels;
 
       Engine.Init_Level (State, Current_Level);
-      State.Lives := (if Current_Level = 1 then Settings.Start_Lives
-                      else State.Lives);
+      State.Lives := Settings.Start_Lives;
       Initial_State := State;
 
       --  Set timed input: Game_Tick_Ms per iteration
