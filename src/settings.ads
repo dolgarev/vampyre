@@ -25,10 +25,6 @@ package Settings is
    --  === Player ===
    Start_Lives : constant := 3;
 
-   --  Each hero step increments the step counter.
-   --  Vampires move once every Vampire_Speed hero steps.
-   Vampire_Speed : constant := 5;
-
    --  === Day/Night Cycle ===
    Cycle_Length : constant := 12;  --  Steps per phase
    Vampire_Speed_Day   : constant := 4;  --  Moves every 4 steps
