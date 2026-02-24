@@ -95,7 +95,7 @@ package body Engine is
       State := (Map             => (others => (others => Space)),
                 Player_Row      => (Max_Rows + 1) / 2,
                 Player_Col      => (Max_Cols + 1) / 2,
-                Vampires        => (others => (0, 0, False)),
+                Vampires        => (others => (0, 0, False, False, False)),
                 Num_Vampires    => Num_Vamps,
                 Alive_Vampires  => Num_Vamps,
                 Steps           => 0,
@@ -147,7 +147,7 @@ package body Engine is
                if VC < 2 then VC := 2; end if;
                if VC > Max_Cols - 1 then VC := Max_Cols - 1; end if;
 
-               State.Vampires (I) := (Row => VR, Col => VC, Alive => True);
+               State.Vampires (I) := (Row => VR, Col => VC, Alive => True, Trapped => False, Blink_On => False);
                State.Map (VR, VC) := Vampire;
             end;
          end loop;
@@ -275,32 +275,47 @@ package body Engine is
             declare
                VR   : Integer renames State.Vampires (I).Row;
                VC   : Integer renames State.Vampires (I).Col;
-               Step : constant Dir_Offset := Best_Step (VR, VC);
-               NR   : constant Integer    := VR + Step.DR;
-               NC   : constant Integer    := VC + Step.DC;
+               Was_Trapped : constant Boolean := State.Vampires (I).Trapped;
+               Now_Trapped : constant Boolean := Is_Trapped (State, VR, VC);
             begin
-               if Step.DR /= 0 or else Step.DC /= 0 then
-                  if State.Map (NR, NC) = Player then
-                     --  Vampire reaches the player — player dies
-                     State.Map (VR, VC) := Space;
-                     VR := NR;
-                     VC := NC;
-                     State.Map (NR, NC) := Vampire;
-                     State.Player_Dead  := True;
-                     State.Death_Timer  := 20;
-                  else
-                     State.Map (VR, VC) := Space;
-                     VR := NR;
-                     VC := NC;
-                     State.Map (NR, NC) := Vampire;
-                  end if;
-               end if;
+               State.Vampires (I).Trapped := Now_Trapped;
 
-               --  After moving, check if now trapped
-               if Is_Trapped (State, VR, VC) then
-                  State.Map (VR, VC) := Space;
-                  State.Vampires (I).Alive := False;
-                  State.Alive_Vampires := State.Alive_Vampires - 1;
+               if Now_Trapped then
+                  if not Was_Trapped then
+                     State.Alive_Vampires := State.Alive_Vampires - 1;
+                  end if;
+               else
+                  if Was_Trapped then
+                     State.Alive_Vampires := State.Alive_Vampires + 1;
+                  end if;
+
+                  declare
+                     Step : constant Dir_Offset := Best_Step (VR, VC);
+                     NR   : constant Integer    := VR + Step.DR;
+                     NC   : constant Integer    := VC + Step.DC;
+                  begin
+                     if Step.DR /= 0 or else Step.DC /= 0 then
+                        if State.Map (NR, NC) = Player then
+                           State.Map (VR, VC) := Space;
+                           VR := NR;
+                           VC := NC;
+                           State.Map (NR, NC) := Vampire;
+                           State.Player_Dead  := True;
+                           State.Death_Timer  := 20;
+                        else
+                           State.Map (VR, VC) := Space;
+                           VR := NR;
+                           VC := NC;
+                           State.Map (NR, NC) := Vampire;
+                        end if;
+                     end if;
+                  end;
+
+                  --  Re-check trapping after moving
+                  if Is_Trapped (State, VR, VC) then
+                     State.Vampires (I).Trapped := True;
+                     State.Alive_Vampires := State.Alive_Vampires - 1;
+                  end if;
                end if;
             end;
          end if;
@@ -343,6 +358,15 @@ package body Engine is
             State.Death_Timer := 20;
          end if;
       end if;
+
+      --  Update blinking for trapped vampires
+      for I in 1 .. State.Num_Vampires loop
+         if State.Vampires (I).Alive and then State.Vampires (I).Trapped then
+            if (State.Steps mod 2) = 0 then
+               State.Vampires (I).Blink_On := not State.Vampires (I).Blink_On;
+            end if;
+         end if;
+      end loop;
    end Tick;
 
 end Engine;

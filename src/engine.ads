@@ -11,11 +11,13 @@ package Engine is
    type Map_Data is
      array (1 .. Max_Rows, 1 .. Max_Cols) of Entity_Type;
 
-   --  Per-vampire record: position and alive flag
+   --  Per-vampire record: position and status
    type Vampire_Record is record
-      Row   : Integer := 0;
-      Col   : Integer := 0;
-      Alive : Boolean := False;
+      Row      : Integer := 0;
+      Col      : Integer := 0;
+      Alive    : Boolean := False;
+      Trapped  : Boolean := False;  --  Currently surrounded by blocks/walls
+      Blink_On : Boolean := False;  --  Blinking state for trapped vampires
    end record;
 
    type Vampire_Array is
