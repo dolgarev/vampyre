@@ -54,7 +54,7 @@ Your goal is to **trap all vampires** by surrounding them with blocks — a vamp
 
 ```bash
 gprbuild -P vampyre.gpr
-./dist/vampyre
+./bin/vampyre
 ```
 
 ## Project Structure
