@@ -2,6 +2,8 @@
 
 **Vampyre** is a free implementation of the classic *Vampir* game for the **Agat-7** Soviet home computer (1987), itself inspired by the MS-DOS classic **Beast / Heads**. Written in **Ada 2022** using the **ncurses** library.
 
+<img width="1032" height="800" alt="ksnip_20260425-211023" src="https://github.com/user-attachments/assets/6bdd40b3-fa04-4bff-8561-5860c747e8ba" />
+
 ## Gameplay
 
 The game takes place on a walled grid field scattered with pushable blocks.  
