@@ -33,16 +33,23 @@ begin
       return;  --  User chose to quit
    end if;
 
-   --  ============================================================
-   --  Outer loop: iterate through all levels
-   --  ============================================================
-   Outer_Loop :
-   loop
-      exit Outer_Loop when Current_Level > Settings.Max_Levels;
+    --  ============================================================
+    --  Outer loop: iterate through all levels
+    --  ============================================================
+    State.Lives := Settings.Start_Lives;
+    Outer_Loop :
+    loop
+       exit Outer_Loop when Current_Level > Settings.Max_Levels;
 
-      Engine.Init_Level (State, Current_Level);
-      State.Lives := Settings.Start_Lives;
-      Initial_State := State;
+       declare
+          Saved_Lives : constant Integer := State.Lives;
+       begin
+          Engine.Init_Level (State, Current_Level);
+          if Current_Level > 1 then
+             State.Lives := Saved_Lives;
+          end if;
+       end;
+       Initial_State := State;
 
       --  Set timed input: Game_Tick_Ms per iteration
       Set_Timeout_Mode (Win, Delayed, Settings.Game_Tick_Ms);

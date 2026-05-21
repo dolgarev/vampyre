@@ -161,21 +161,78 @@ package body Engine is
          end loop;
       end;
 
-      --  Scatter blocks randomly (avoid player, vampires, walls)
-      Placed := 0;
-      while Placed < Num_Blocks loop
-         R := (abs (Rand_Int.Random (Gen)) mod (Max_Rows - 4)) + 3;
-         C := (abs (Rand_Int.Random (Gen)) mod (Max_Cols - 4)) + 3;
-         if State.Map (R, C) = Space then
-            --  Keep a small clear area around the player (3×3)
-            if abs (R - State.Player_Row) > 1 or else
-               abs (C - State.Player_Col) > 1
-            then
-               State.Map (R, C) := Block;
-               Placed := Placed + 1;
-            end if;
-         end if;
-      end loop;
+       --  Scatter blocks randomly; retry if layout blocks all paths to vampires
+       declare
+          Max_Retries : constant Integer := 20;
+
+          function All_Vampires_Reachable return Boolean is
+             Dirs_4 : constant array (1 .. 4) of Dir_Offset :=
+               [(-1, 0), (1, 0), (0, -1), (0, 1)];
+             type Cell is record R, C : Integer; end record;
+             Stack : array (1 .. Max_Rows * Max_Cols) of Cell;
+             SP    : Integer;
+             Vis   : array (1 .. Max_Rows, 1 .. Max_Cols) of Boolean;
+             CR, CC, NVR, NVC : Integer;
+          begin
+             Vis := [others => [others => False]];
+             SP := 1;
+             Stack (1) := (State.Player_Row, State.Player_Col);
+             Vis (State.Player_Row, State.Player_Col) := True;
+
+             while SP > 0 loop
+                CR := Stack (SP).R;
+                CC := Stack (SP).C;
+                SP := SP - 1;
+
+                for D of Dirs_4 loop
+                   NVR := CR + D.DR;
+                   NVC := CC + D.DC;
+                   if NVR in 1 .. Max_Rows and then NVC in 1 .. Max_Cols
+                      and then not Vis (NVR, NVC)
+                      and then State.Map (NVR, NVC) /= Wall
+                      and then State.Map (NVR, NVC) /= Block
+                   then
+                      Vis (NVR, NVC) := True;
+                      SP := SP + 1;
+                      Stack (SP) := (NVR, NVC);
+                   end if;
+                end loop;
+             end loop;
+
+             for I in 1 .. Num_Vamps loop
+                if not Vis (State.Vampires (I).Row, State.Vampires (I).Col) then
+                   return False;
+                end if;
+             end loop;
+             return True;
+          end All_Vampires_Reachable;
+       begin
+          for Attempt in 1 .. Max_Retries loop
+             for R2 in 2 .. Max_Rows - 1 loop
+                for C2 in 2 .. Max_Cols - 1 loop
+                   if State.Map (R2, C2) = Block then
+                      State.Map (R2, C2) := Space;
+                   end if;
+                end loop;
+             end loop;
+
+             Placed := 0;
+             while Placed < Num_Blocks loop
+                R := (abs (Rand_Int.Random (Gen)) mod (Max_Rows - 4)) + 3;
+                C := (abs (Rand_Int.Random (Gen)) mod (Max_Cols - 4)) + 3;
+                if State.Map (R, C) = Space then
+                   if abs (R - State.Player_Row) > 1 or else
+                      abs (C - State.Player_Col) > 1
+                   then
+                      State.Map (R, C) := Block;
+                      Placed := Placed + 1;
+                   end if;
+                end if;
+             end loop;
+
+             exit when All_Vampires_Reachable;
+          end loop;
+       end;
    end Init_Level;
 
    ---------------------------------------------------------------------------
