@@ -302,96 +302,122 @@ package body Engine is
    ---------------------------------------------------------------------------
    --  Update_Vampires
    ---------------------------------------------------------------------------
-   procedure Update_Vampires (State : in out Game_State) is
+    procedure Update_Vampires (State : in out Game_State) is
 
-      --  Chebyshev-minimising step toward (PR, PC) from (VR, VC)
-      function Best_Step (VR, VC : Integer) return Dir_Offset is
-         Best      : Dir_Offset := (0, 0);
-         Best_Dist : Integer := Integer'Last;
-         Dist      : Integer;
-         NR, NC    : Integer;
-      begin
-         for D of Dirs_8 loop
-            NR := VR + D.DR;
-            NC := VC + D.DC;
-            if NR in 1 .. Max_Rows and then NC in 1 .. Max_Cols then
-               if State.Map (NR, NC) = Space or else
-                  State.Map (NR, NC) = Player
-               then
-                  Dist := Integer'Max
-                    (abs (NR - State.Player_Row),
-                     abs (NC - State.Player_Col));
-                  if Dist < Best_Dist then
-                     Best_Dist := Dist;
-                     Best      := D;
-                  end if;
-               end if;
-            end if;
-         end loop;
-         return Best;
-      end Best_Step;
+       --  Chebyshev-minimising step toward (PR, PC) from (VR, VC)
+       function Best_Step (VR, VC : Integer) return Dir_Offset is
+          Best      : Dir_Offset := (0, 0);
+          Best_Dist : Integer := Integer'Last;
+          Dist      : Integer;
+          NR, NC    : Integer;
+       begin
+          for D of Dirs_8 loop
+             NR := VR + D.DR;
+             NC := VC + D.DC;
+             if NR in 1 .. Max_Rows and then NC in 1 .. Max_Cols then
+                if State.Map (NR, NC) = Space or else
+                   State.Map (NR, NC) = Player
+                then
+                   Dist := Integer'Max
+                     (abs (NR - State.Player_Row),
+                      abs (NC - State.Player_Col));
+                   if Dist < Best_Dist then
+                      Best_Dist := Dist;
+                      Best      := D;
+                   end if;
+                end if;
+             end if;
+          end loop;
+          return Best;
+       end Best_Step;
 
-   begin
-      if State.Player_Dead or State.Game_Over or State.Level_Complete then
-         return;
-      end if;
+       type Move_Target is record
+          Should_Move : Boolean;
+          Row, Col    : Integer;
+       end record;
+       Targets : array (1 .. Settings.Max_Vampires) of Move_Target;
 
-      for I in 1 .. State.Num_Vampires loop
-         if State.Vampires (I).Alive then
-            declare
-               VR   : Integer renames State.Vampires (I).Row;
-               VC   : Integer renames State.Vampires (I).Col;
-               Was_Trapped : constant Boolean := State.Vampires (I).Trapped;
-               Now_Trapped : constant Boolean := Is_Trapped (State, VR, VC);
-            begin
-               State.Vampires (I).Trapped := Now_Trapped;
+       NR, NC : Integer;
+    begin
+       if State.Player_Dead or State.Game_Over or State.Level_Complete then
+          return;
+       end if;
 
-               if Now_Trapped then
-                  if not Was_Trapped then
-                     State.Alive_Vampires := State.Alive_Vampires - 1;
-                  end if;
-               else
-                  if Was_Trapped then
-                     State.Alive_Vampires := State.Alive_Vampires + 1;
-                  end if;
+       --  Pass 1: evaluate traps and compute movement targets
+       for I in 1 .. State.Num_Vampires loop
+          if State.Vampires (I).Alive then
+             declare
+                VR : constant Integer := State.Vampires (I).Row;
+                VC : constant Integer := State.Vampires (I).Col;
+             begin
+                if Is_Trapped (State, VR, VC) then
+                   State.Vampires (I).Trapped := True;
+                   Targets (I) := (Should_Move => False, Row => 0, Col => 0);
+                else
+                   State.Vampires (I).Trapped := False;
+                   declare
+                      Step : constant Dir_Offset := Best_Step (VR, VC);
+                   begin
+                      if Step.DR /= 0 or else Step.DC /= 0 then
+                         Targets (I) := (Should_Move => True,
+                                         Row => VR + Step.DR,
+                                         Col => VC + Step.DC);
+                      else
+                         Targets (I) :=
+                           (Should_Move => False, Row => 0, Col => 0);
+                      end if;
+                   end;
+                end if;
+             end;
+          else
+             Targets (I) := (Should_Move => False, Row => 0, Col => 0);
+          end if;
+       end loop;
 
-                  declare
-                     Step : constant Dir_Offset := Best_Step (VR, VC);
-                     NR   : constant Integer    := VR + Step.DR;
-                     NC   : constant Integer    := VC + Step.DC;
-                  begin
-                     if Step.DR /= 0 or else Step.DC /= 0 then
-                        if State.Map (NR, NC) = Player then
-                           State.Map (VR, VC) := Space;
-                           VR := NR;
-                           VC := NC;
-                           State.Map (NR, NC) := Vampire;
-                           State.Player_Dead  := True;
-                           State.Death_Timer  := 20;
-                        else
-                           State.Map (VR, VC) := Space;
-                           VR := NR;
-                           VC := NC;
-                           State.Map (NR, NC) := Vampire;
-                        end if;
-                     end if;
-                  end;
+       --  Pass 2: apply all moves
+       for I in 1 .. State.Num_Vampires loop
+          if Targets (I).Should_Move then
+             declare
+                VR : Integer renames State.Vampires (I).Row;
+                VC : Integer renames State.Vampires (I).Col;
+             begin
+                NR := Targets (I).Row;
+                NC := Targets (I).Col;
 
-                  --  Re-check trapping after moving
-                  if Is_Trapped (State, VR, VC) then
-                     State.Vampires (I).Trapped := True;
-                     State.Alive_Vampires := State.Alive_Vampires - 1;
-                  end if;
-               end if;
-            end;
-         end if;
-      end loop;
+                if State.Map (NR, NC) = Space then
+                   State.Map (VR, VC) := Space;
+                   VR := NR;
+                   VC := NC;
+                   State.Map (NR, NC) := Vampire;
 
-      --  Win check
-      if State.Alive_Vampires = 0 then
-         State.Level_Complete := True;
-      end if;
-   end Update_Vampires;
+                   if Is_Trapped (State, VR, VC) then
+                      State.Vampires (I).Trapped := True;
+                   end if;
+
+                elsif State.Map (NR, NC) = Player then
+                   State.Map (VR, VC) := Space;
+                   VR := NR;
+                   VC := NC;
+                   State.Map (NR, NC) := Vampire;
+                   State.Player_Dead  := True;
+                   State.Death_Timer  := 20;
+                end if;
+             end;
+          end if;
+       end loop;
+
+       --  Recalculate alive vampires from scratch
+       State.Alive_Vampires := 0;
+       for I in 1 .. State.Num_Vampires loop
+          if State.Vampires (I).Alive and then not State.Vampires (I).Trapped then
+             State.Alive_Vampires := State.Alive_Vampires + 1;
+          end if;
+       end loop;
+
+       if State.Alive_Vampires = 0 then
+          State.Level_Complete := True;
+       end if;
+    end Update_Vampires;
 
    ---------------------------------------------------------------------------
    --  Tick

@@ -16,6 +16,7 @@ package body Renderer is
       Init_Pair (Color_Pair (5), Yellow,  Black);  --  Status bar
       Init_Pair (Color_Pair (6), Red,     Black);  --  Dead player / alert
       Init_Pair (Color_Pair (7), Red,     Black);  --  Vampire (night) - red for danger
+      Init_Pair (Color_Pair (8), Yellow,  Black);  --  Menu highlight
    end Initialize_Colors;
 
    -------------------------------------------------------------------------
@@ -312,7 +313,7 @@ package body Renderer is
                                     Integer'Image (Settings.Max_Levels));
 
          --  Display current selection with highlight
-         Set_Character_Attributes (Win, Color => Color_Pair (6));  --  Highlighted
+         Set_Character_Attributes (Win, Color => Color_Pair (8));  --  Highlighted
          declare
             Level_Image : constant String := Integer'Image (Current_Selection);
             Level_Str   : String (1 .. 2);
