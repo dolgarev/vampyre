@@ -24,7 +24,7 @@ Your goal is to **trap all vampires** by surrounding them with blocks — a vamp
 - Blocks **cannot be pushed through vampires** - if a vampire is in the path, the block chain cannot move.
 - Vampires are **trapped and killed** when completely surrounded in all 8 directions by blocks or walls.
 - **Vampires** chase the player and move in 8 directions, but their speed varies with the **day/night cycle**:
-  - **Day**: vampires move once every **4 player steps**
+  - **Day**: vampires move once every **6 player steps**
   - **Night**: vampires move once every **2 player steps**
 - The day/night cycle changes every **12 player steps**.
 - A vampire that reaches the player causes a **loss of life**.

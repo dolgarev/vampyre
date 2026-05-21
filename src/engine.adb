@@ -124,29 +124,37 @@ package body Engine is
       --  Place player
       State.Map (State.Player_Row, State.Player_Col) := Player;
 
-      --  Place vampires near corners
+      --  Place vampires in concentric rings from corners, avoiding overlaps
       declare
-         Corner_Positions : constant array (1 .. 4) of Dir_Offset :=
+         type Corner_Range is range 1 .. 4;
+         Corner_Origin : constant array (Corner_Range) of Dir_Offset :=
            [(2, 2), (2, Max_Cols - 1), (Max_Rows - 1, 2),
             (Max_Rows - 1, Max_Cols - 1)];
+         Corner_Sign  : constant array (Corner_Range) of Dir_Offset :=
+           [(1, 1), (1, -1), (-1, 1), (-1, -1)];
       begin
          for I in 1 .. Num_Vamps loop
             declare
-               CP : constant Dir_Offset :=
-                 Corner_Positions (((I - 1) mod 4) + 1);
-               VR : Integer := CP.DR;
-               VC : Integer := CP.DC;
+               Idx   : constant Corner_Range := Corner_Range (((I - 1) mod 4) + 1);
+               Ring  : constant Integer := (I - 1) / 4;
+               VR    : Integer := Corner_Origin (Idx).DR + Ring * 2 * Corner_Sign (Idx).DR;
+               VC    : Integer := Corner_Origin (Idx).DC + Ring * 2 * Corner_Sign (Idx).DC;
             begin
-               --  Shift slightly if corner already used (>4 vampires)
-               if I > 4 then
-                  VR := VR + (I / 4) * 2;
-                  VC := VC + (I / 4) * 2;
-               end if;
                --  Clamp to valid inner area
-               if VR < 2 then VR := 2; end if;
-               if VR > Max_Rows - 1 then VR := Max_Rows - 1; end if;
-               if VC < 2 then VC := 2; end if;
-               if VC > Max_Cols - 1 then VC := Max_Cols - 1; end if;
+               VR := Integer'Max (2, Integer'Min (VR, Max_Rows - 1));
+               VC := Integer'Max (2, Integer'Min (VC, Max_Cols - 1));
+
+               --  If occupied, scan forward to nearest free cell
+               while State.Map (VR, VC) /= Space loop
+                  VC := VC + 1;
+                  if VC > Max_Cols - 1 then
+                     VC := 2;
+                     VR := VR + 1;
+                     if VR > Max_Rows - 1 then
+                        VR := 2;
+                     end if;
+                  end if;
+               end loop;
 
                State.Vampires (I) := (Row => VR, Col => VC, Alive => True, Trapped => False);
                State.Map (VR, VC) := Vampire;
@@ -239,10 +247,9 @@ package body Engine is
             end;
 
          when Vampire =>
-            --  Player walks into a vampire — die
+            --  Player walks into a vampire — die (no step counted, no actual move)
             State.Player_Dead := True;
             State.Death_Timer := 20;  --  20 ticks death animation
-            State.Steps := State.Steps + 1;
 
          when Player =>
             null;  --  should never happen
