@@ -1,4 +1,3 @@
-with Settings;
 with Ada.Numerics.Discrete_Random;
 
 package body Engine is
@@ -182,84 +181,66 @@ package body Engine is
    ---------------------------------------------------------------------------
    --  Move_Player
    ---------------------------------------------------------------------------
-   procedure Move_Player (State : in out Game_State; DR, DC : Integer) is
-      NR : constant Integer := State.Player_Row + DR;
-      NC : constant Integer := State.Player_Col + DC;
-   begin
-      if State.Player_Dead or State.Game_Over or State.Level_Complete then
-         return;
-      end if;
+    procedure Move_Player (State : in out Game_State; DR, DC : Integer) is
+       NR : constant Integer := State.Player_Row + DR;
+       NC : constant Integer := State.Player_Col + DC;
 
-      if NR not in 1 .. Max_Rows or else NC not in 1 .. Max_Cols then
-         return;
-      end if;
+       procedure Advance_Player is
+       begin
+          State.Map (State.Player_Row, State.Player_Col) := Space;
+          State.Player_Row := NR;
+          State.Player_Col := NC;
+          State.Map (NR, NC) := Player;
+          State.Steps := State.Steps + 1;
+          State.Vampire_Ticker := State.Vampire_Ticker + 1;
 
-      case State.Map (NR, NC) is
-         when Wall =>
-            null;  --  cannot enter wall
+          State.Is_Night := (State.Steps / Settings.Cycle_Length) mod 2 = 1;
 
-         when Block =>
-            --  Try to push the block chain
-            if Push_Chain (State, NR, NC, DR, DC) then
-               --  Block pushed successfully — move player
-               State.Map (State.Player_Row, State.Player_Col) := Space;
-               State.Player_Row := NR;
-               State.Player_Col := NC;
-               State.Map (NR, NC) := Player;
-               State.Steps := State.Steps + 1;
-               State.Vampire_Ticker := State.Vampire_Ticker + 1;
+          declare
+             Cur_Speed : constant Integer :=
+               (if State.Is_Night then Settings.Vampire_Speed_Night
+                else Settings.Vampire_Speed_Day);
+          begin
+             if State.Vampire_Ticker >= Cur_Speed then
+                State.Vampire_Ticker := 0;
+                Update_Vampires (State);
+             end if;
+          end;
+       end Advance_Player;
 
-               --  Day/Night cycle switching
-               State.Is_Night := (State.Steps / Settings.Cycle_Length) mod 2 = 1;
+    begin
+       if State.Player_Dead or State.Game_Over or State.Level_Complete then
+          return;
+       end if;
 
-               declare
-                  Cur_Speed : constant Integer :=
-                    (if State.Is_Night then Settings.Vampire_Speed_Night
-                     else Settings.Vampire_Speed_Day);
-               begin
-                  if State.Vampire_Ticker >= Cur_Speed then
-                     State.Vampire_Ticker := 0;
-                     Update_Vampires (State);
-                  end if;
-               end;
-            end if;
+       if NR not in 1 .. Max_Rows or else NC not in 1 .. Max_Cols then
+          return;
+       end if;
 
-         when Space =>
-            State.Map (State.Player_Row, State.Player_Col) := Space;
-            State.Player_Row := NR;
-            State.Player_Col := NC;
-            State.Map (NR, NC) := Player;
-            State.Steps := State.Steps + 1;
-            State.Vampire_Ticker := State.Vampire_Ticker + 1;
+       case State.Map (NR, NC) is
+          when Wall =>
+             null;  --  cannot enter wall
 
-            --  Day/Night cycle switching
-            State.Is_Night := (State.Steps / Settings.Cycle_Length) mod 2 = 1;
+          when Block =>
+             if Push_Chain (State, NR, NC, DR, DC) then
+                Advance_Player;
+             end if;
 
-            declare
-               Cur_Speed : constant Integer :=
-                 (if State.Is_Night then Settings.Vampire_Speed_Night
-                  else Settings.Vampire_Speed_Day);
-            begin
-               if State.Vampire_Ticker >= Cur_Speed then
-                  State.Vampire_Ticker := 0;
-                  Update_Vampires (State);
-               end if;
-            end;
+          when Space =>
+             Advance_Player;
 
-         when Vampire =>
-            --  Player walks into a vampire — die (no step counted, no actual move)
-            State.Player_Dead := True;
-            State.Death_Timer := 20;  --  20 ticks death animation
+          when Vampire =>
+             State.Player_Dead := True;
+             State.Death_Timer := 20;
 
-         when Player =>
-            null;  --  should never happen
-      end case;
+          when Player =>
+             null;  --  should never happen
+       end case;
 
-      --  Check win: all vampires dead
-      if State.Alive_Vampires = 0 then
-         State.Level_Complete := True;
-      end if;
-   end Move_Player;
+       if State.Alive_Vampires = 0 then
+          State.Level_Complete := True;
+       end if;
+    end Move_Player;
 
    ---------------------------------------------------------------------------
    --  Update_Vampires
